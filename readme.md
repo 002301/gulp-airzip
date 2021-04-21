@@ -13,3 +13,7 @@
 删除打包文件dist
 #### gulp distServer
 浏览器打开dist目录服务器
+
+#### 压缩js
+
+>uglifyjs .\index.js -o .\index.min.js

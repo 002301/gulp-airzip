@@ -1,13 +1,15 @@
 const { src, dest, watch, series, parallel } = require('gulp');
 const connect = require('gulp-connect') //服务器
 const concat = require('gulp-concat') //合并文件
-const uglify = require('gulp-uglify'); //压缩js
+// const uglify = require('gulp-uglify'); //压缩js 不支持ES6 
+const uglify = require('gulp-uglify-es').default; // ES6压缩
 const cleanCSS = require('gulp-clean-css'); //压缩 css
 const htmlmin = require('gulp-htmlmin'); //压缩html
 const image = require('gulp-image');//压缩img
 const del = require('del');//删除文件
 const process = require('process');//删除文件
 const shell = require('shelljs'); //命令行操作
+const c = require('child_process');
 //压缩js
 function zipjs(){
   return src('src/js/*.js')
@@ -86,25 +88,22 @@ function getIPAddress() {
 }
 //设置浏览器中打开项目 
 // 可以自定义传入端口
-function openBrowser(port=8080){
-  var platform = process.platform;
-  let IPAdd = getIPAddress();
-  var shellStr1 = `open -a '/Applications/Google Chrome.app' 'http://${IPAdd}:${port}'`;
-  var shellStr2 = `start 'http://${IPAdd}:${port}'`;
+// 可以自定义传入端口
+function openBrowser(port = 8080) {
   // 打开浏览器方法：
-  var openFunc = function (str, flag) {
-    // 执行并对异常处理
-    if (shell.exec(str).code !== 0) {
-      shell.echo(flag + '下打开浏览器失败,建议您安装chrome并设为默认浏览器!');
-      shell.exit(1);
-    }
-  };
-  if (platform === 'darwin') {
-    openFunc(shellStr1, 'Mac');
-  } else if (platform === 'win32' || platform === 'win64') {
-    openFunc(shellStr2, 'Windows');
-  } else {
-    shell.echo('现在只支持Mac和windows系统!如果未打开页面，请确认安装chrome并设为默认浏览器!');
+  let IPAdd = getIPAddress();
+  let url = `http://${IPAdd}:${port}`;
+  // 拿到当前系统的参数
+  switch (process.platform) {
+    //mac系统使用 一下命令打开url在浏览器
+    case "darwin":
+      c.exec(`open ${url}`);
+    //win系统使用 一下命令打开url在浏览器
+    case "win32":
+      c.exec(`start ${url}`);
+    // 默认mac系统
+    default:
+      c.exec(`open ${url}`);
   }
 }
 
@@ -112,6 +111,7 @@ function openBrowser(port=8080){
 exports.dev = parallel(watchAll,dev);
 //删除打包项目
 exports.clean = clean; 
+exports.zipjs = zipjs;
 // 浏览器打开打包项目
 exports.distServer = distServer;
 //打包项目
